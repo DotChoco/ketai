@@ -1,0 +1,25 @@
+build/
+bin/
+lib/
+
+# Archivos de depuración y temporales
+*.o
+*.obj
+*.lo
+*.la
+*.d
+*.exe
+*.dll
+*.lib
+*.a
+*.so
+*.dylib
+*.DS_Store
+Thumbs.db
+
+# IDE específicos (si usas otros)
+.vscode/
+.vs/
+.idea/
+*.iml
+
