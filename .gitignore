@@ -1,9 +1,11 @@
 build/
 bin/
 lib/
+obj/
 
 # Archivos de depuración y temporales
 *.o
+*.obj
 *.obj
 *.lo
 *.la

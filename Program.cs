@@ -22,6 +22,9 @@ class Program{
     // await ap.PlayAsync();
     // Console.WriteLine(ap.DataLog.content);
 
+    ClientCredentials.ClientId = "d7710b76f817426cbe46ec4dd6682c5e";
+    ClientCredentials.ClientSecret = "fd0571a15f5344c2bc91ac62553a631b";
+    ClientCredentials.RedirectUri = "http://[::1]:8080/callback/";
 
     SpfTest spfTest = new();
     await spfTest.Auth();
