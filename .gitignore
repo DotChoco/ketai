@@ -4,6 +4,7 @@ lib/
 obj/
 
 # Archivos de depuración y temporales
+**/cde.json
 *.o
 *.obj
 *.obj

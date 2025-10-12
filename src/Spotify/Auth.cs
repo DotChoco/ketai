@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace Ketai.Spf.Auth;
 
@@ -29,12 +31,19 @@ public class SpotifyTokenResponse{
   public string RefreshToken { get; set; } = "";
 }
 
+sealed class Credentials {
+  public string ClientId { get; set; } = string.Empty;
+  public string ClientSecret { get; set; } = string.Empty;
+  public string RedirectUri { get; set; } = string.Empty;
+  public string RefreshToken { get; set; } = string.Empty;
+}
 
 
 
 
 public class SpotifyAuth{
   private string redirectUri = string.Empty;
+  private static Credentials S_CDE = new();
 
 
   public async Task<string> GetCodeFromSpotify(){
@@ -53,14 +62,6 @@ public class SpotifyAuth{
 
     var context = await listener.GetContextAsync();
     string code = context.Request.QueryString["code"]!;
-
-
-    string responseString = "<html><body><h1>Ya puedes cerrar esta ventana.</h1></body></html>";
-    var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-    context.Response.ContentLength64 = buffer.Length;
-
-    await context.Response.OutputStream.WriteAsync(buffer);
-    context.Response.OutputStream.Close();
 
     listener.Stop();
     return code!;
@@ -87,21 +88,35 @@ public class SpotifyAuth{
 
 
     if (!response.IsSuccessStatusCode) {
-      Console.WriteLine("Error obteniendo tokens: \n" + json);
+      Console.WriteLine("Error getting tokens: \n" + json);
       return;
     }
 
 
     var tokenResponse = JsonSerializer.Deserialize<SpotifyTokenResponse>(json);
 
+    // Console.WriteLine(tokenResponse!.RefreshToken);
+
     ClientTokens.AccessToken = tokenResponse!.AccessToken;
     ClientTokens.RefreshToken = tokenResponse.RefreshToken;
-
   }
 
 
-  public async Task SaveTokens(string path, string tokens){
-    string json = JsonSerializer.Serialize(tokens, new JsonSerializerOptions {
+  public static async Task LoadCredentials(string path){
+    StreamReader sr =new(path);
+    string json = await sr.ReadToEndAsync();
+    sr.Close();
+
+    S_CDE = JsonSerializer.Deserialize<Credentials>(json)!;
+
+    ClientCredentials.ClientId = S_CDE!.ClientId;
+    ClientCredentials.ClientSecret = S_CDE!.ClientSecret;
+    ClientCredentials.RedirectUri = S_CDE!.RedirectUri;
+    ClientTokens.RefreshToken = S_CDE!.RefreshToken;
+  }
+
+  public static async Task SaveTokens(string path){
+    string json = JsonSerializer.Serialize(S_CDE, new JsonSerializerOptions {
       Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     });
 
@@ -109,22 +124,49 @@ public class SpotifyAuth{
     await sw.WriteLineAsync(json);
     sw.Close();
 
-    Console.WriteLine("Tokens Created");
   }
 
-  public async Task LoadTokens(string path){
-    StreamReader sr =new(path);
-    string data = await sr.ReadToEndAsync();
-    sr.Close();
 
-    data = JsonSerializer.Deserialize<string>(data)!;
 
-    Console.WriteLine("Tokens Loaded");
-    SpotifyTokenResponse response = JsonSerializer.Deserialize<SpotifyTokenResponse>(data)!;
+  public async Task RefreshAccessToken()
+  {
+    using var client = new HttpClient();
+    var request = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
 
-    ClientTokens.AccessToken = response.AccessToken;
-    ClientTokens.RefreshToken = response.RefreshToken;
-  }
+    // Authorization: Basic base64(client_id:client_secret)
+    var basicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{S_CDE.ClientId}:{S_CDE.ClientSecret}"));
+    request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+
+    var content = new FormUrlEncodedContent(new[]
+    {
+        new KeyValuePair<string,string>("grant_type", "refresh_token"),
+        new KeyValuePair<string,string>("refresh_token", S_CDE.RefreshToken)
+    });
+    request.Content = content;
+
+    var resp = await client.SendAsync(request);
+    var body = await resp.Content.ReadAsStringAsync();
+
+    if (!resp.IsSuccessStatusCode)
+    {
+        Console.WriteLine("Error refreshing token: " + resp.StatusCode);
+        Console.WriteLine(body);
+        return;
+    }
+
+    using var doc = JsonDocument.Parse(body);
+    var root = doc.RootElement;
+    var accessToken = root.GetProperty("access_token").GetString();
+    var expiresIn = root.GetProperty("expires_in").GetInt32();
+
+    // Nota: a veces la respuesta incluye refresh_token; si la incluye, reemplazar tu guardado.
+    if (root.TryGetProperty("refresh_token", out var newRefresh)){
+        ClientTokens.RefreshToken = newRefresh.GetString()!;
+    }
+
+    ClientTokens.AccessToken = accessToken!;
+    await SaveTokens("../../cde.json");
+}
 
 }
 

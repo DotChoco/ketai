@@ -18,9 +18,7 @@ public class SpotifyPlayer{
           Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
     };
 
-    var response = await client.SendAsync(request);
-    // Console.WriteLine("Status: " + response.StatusCode);
-    Console.WriteLine(await response.Content.ReadAsStringAsync());
+    await client.SendAsync(request);
   }
 
 }
