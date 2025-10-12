@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ketai")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d9fea45266545cefcb62fdbf35fa1ecfdd79606")]
 [assembly: System.Reflection.AssemblyProductAttribute("ketai")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ketai")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

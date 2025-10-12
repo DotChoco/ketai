@@ -22,3 +22,8 @@ D:\Github\CSharp\ketai\bin\Debug\net9.0\NAudio.WinMM.dll
 D:\Github\CSharp\ketai\bin\Debug\net9.0\NVorbis.dll
 D:\Github\CSharp\ketai\obj\Debug\net9.0\ketai.csproj.AssemblyReference.cache
 D:\Github\CSharp\ketai\obj\Debug\net9.0\ketai.csproj.Up2Date
+D:\Github\CSharp\ketai\obj\Debug\net9.0\ketai.sourcelink.json
+D:\Github\CSharp\ketai\bin\Debug\net9.0\SharpGen.Runtime.dll
+D:\Github\CSharp\ketai\bin\Debug\net9.0\SharpGen.Runtime.COM.dll
+D:\Github\CSharp\ketai\bin\Debug\net9.0\Vortice.DirectX.dll
+D:\Github\CSharp\ketai\bin\Debug\net9.0\Vortice.Mathematics.dll

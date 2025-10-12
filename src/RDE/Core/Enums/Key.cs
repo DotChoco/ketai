@@ -1,4 +1,4 @@
-namespace RDE.Input;
+namespace RDE.Behavior.Input;
 
 public enum Key {
     None,

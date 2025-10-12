@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-namespace RDE.Input;
+namespace RDE.Behavior.Input;
 
 public static class Input {
     public static List<(Func<bool>, Key)> Buttons = new();
-    
+
     public static bool SetInputAction(Func<string> Action, Key Btn) {
         return false;
     }
