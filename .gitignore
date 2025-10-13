@@ -2,6 +2,7 @@ build/
 bin/
 lib/
 obj/
+cache/
 
 # Archivos de depuración y temporales
 **/cde.json
