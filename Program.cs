@@ -1,7 +1,4 @@
 ﻿using Ketai.Spf.Testing;
-using Ketai.Spf.Auth;
-using Ketai.Spf.Service;
-using Ketai.Spf.Player;
 
 namespace Ketai;
 class Program{
@@ -14,37 +11,19 @@ class Program{
 
 
 
-
     // [----- Spotify Player -----]
 
-    //Spotify LoadCredentials
-    await SpotifyAuth.LoadCredentials("./cde.json");
-
+    //Spotify Account Auth
     SpfTest spfTest = new();
     await spfTest.Auth();
 
-    Console.WriteLine("Account Authenticated");
-
-    //Spotify Client
-    await Librespot.Run();
-    Console.WriteLine("Client Connected");
-
-    //Aqui debe de ir el selector automatico de Dispositivos
-    await SpotifyDevices.ListDevices();
-
-    SpotifyDevices spfDvcs = new();
-    await spfDvcs.SelectDevice("Ketai2");
-    Console.WriteLine("Device Linked");
-
+    //Run Librespot and Connection with it
+    await spfTest.DeviceConnect();
 
     // Play Music
     await spfTest.Play();
 
-    Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.WriteLine("\n\nNow is playing: HypeBoy - NewJeans");
-    Console.ForegroundColor = ConsoleColor.White;
-
-    // Console.ReadKey();
+    Console.ReadKey();
   }
 }
 

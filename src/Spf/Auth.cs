@@ -31,7 +31,7 @@ public class SpotifyTokenResponse{
   public string RefreshToken { get; set; } = "";
 }
 
-sealed class Credentials {
+public sealed class Credentials {
   public string ClientId { get; set; } = string.Empty;
   public string ClientSecret { get; set; } = string.Empty;
   public string RedirectUri { get; set; } = string.Empty;
@@ -42,11 +42,14 @@ sealed class Credentials {
 
 
 public class SpotifyAuth{
+  public string CredentialPath = string.Empty;
   private string redirectUri = string.Empty;
   private static Credentials S_CDE = new();
 
+  public Credentials GetCredentials() => S_CDE;
+  public void SetCredentials(Credentials newCredentials) => S_CDE = newCredentials;
 
-  public async Task<string> GetCodeFromSpotify(){
+  private async Task<string> GetCodeFromSpotify(){
     string scopes = "user-modify-playback-state user-read-playback-state user-read-currently-playing";
     redirectUri = (string)ClientCredentials.RedirectUri.Clone();
 
@@ -68,7 +71,9 @@ public class SpotifyAuth{
   }
 
 
-  public async Task GetTokens(string code){
+  public async Task CreateAccessToken(){
+    string code = await GetCodeFromSpotify();
+
     using var client = new HttpClient();
     string redirectUri = this.redirectUri.Remove(this.redirectUri.Length-1);
 
@@ -102,8 +107,8 @@ public class SpotifyAuth{
   }
 
 
-  public static async Task LoadCredentials(string path){
-    StreamReader sr =new(path);
+  public async Task LoadCredentials(){
+    StreamReader sr =new(CredentialPath);
     string json = await sr.ReadToEndAsync();
     sr.Close();
 
@@ -115,17 +120,16 @@ public class SpotifyAuth{
     ClientTokens.RefreshToken = S_CDE!.RefreshToken;
   }
 
-  public static async Task SaveTokens(string path){
+  public async Task SaveTokens(){
     string json = JsonSerializer.Serialize(S_CDE, new JsonSerializerOptions {
       Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     });
 
-    StreamWriter sw = new(path);
+    StreamWriter sw = new(CredentialPath);
     await sw.WriteLineAsync(json);
     sw.Close();
 
   }
-
 
 
   public async Task RefreshAccessToken()
@@ -165,7 +169,6 @@ public class SpotifyAuth{
     }
 
     ClientTokens.AccessToken = accessToken!;
-    await SaveTokens("../../cde.json");
 }
 
 }

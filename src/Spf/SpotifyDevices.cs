@@ -6,30 +6,10 @@ using System.Text;
 
 namespace Ketai.Spf.Player;
 
-public sealed class Device{
-  [JsonPropertyName("id")]
-  public string id { get; set; } = string.Empty;
 
-  [JsonPropertyName("is_active")]
-  public bool is_active { get; set; } = false;
-
-  [JsonPropertyName("is_private_session")]
-  public bool is_private_session { get; set; } = false;
-
-  [JsonPropertyName("is_restricted")]
-  public bool is_restricted { get; set; } = false;
-
-  [JsonPropertyName("name")]
-  public string name { get; set; } = string.Empty;
-
-  [JsonPropertyName("supports_volume")]
-  public bool supports_volume { get; set; } = false;
-
-  [JsonPropertyName("type")]
-  public string type { get; set; } = string.Empty;
-
-  [JsonPropertyName("volume_percent")]
-  public byte volume_percent { get; set; } = byte.MinValue;
+sealed class Payload{
+  public string[]? device_ids { get; set; }
+  public bool play { get; set; }
 }
 
 public sealed class LDevices{
@@ -37,42 +17,44 @@ public sealed class LDevices{
   public List<Device> devices { get; set; } = new();
 }
 
-public class Payload{
-  public string[]? device_ids { get; set; }
-  public bool play { get; set; }
-}
 
 public class SpotifyDevices{
-  public static LDevices DeviceList = new();
+ private LDevices _deviceList = new();
+ public LDevices DeviceList { get => _deviceList; set => value = _deviceList; }
+
+  public SpotifyDevices(){}
 
 
-
-  public static async Task ListDevices(){
-    var client = new HttpClient();
+  public async Task ListDevices(){
+    HttpClient client = new();
     client.DefaultRequestHeaders.Authorization =
         new AuthenticationHeaderValue("Bearer", ClientTokens.AccessToken);
 
     var response = await client.GetAsync("https://api.spotify.com/v1/me/player/devices");
 
-    if (!response.IsSuccessStatusCode)
-    {
+    if (!response.IsSuccessStatusCode){
         Console.WriteLine($"Error: {response.StatusCode}");
         Console.WriteLine(await response.Content.ReadAsStringAsync());
         return;
     }
 
-    var json = await response.Content.ReadAsStringAsync();
+    string json = await response.Content.ReadAsStringAsync();
     var options = new JsonSerializerOptions{ PropertyNameCaseInsensitive = true };
 
-    DeviceList = JsonSerializer.Deserialize<LDevices>(json, options)!;
+    _deviceList = JsonSerializer.Deserialize<LDevices>(json, options)!;
   }
 
 
 
-  public async Task SelectDevice(string deviceName){
-    Device? _dvc = DeviceList.devices.Find(x => x.name == deviceName);
+  public async Task SelectDevice(string deviceName = ""){
+    if(deviceName == null || deviceName == string.Empty)
+      deviceName = Service.Librespot.deviceName;
 
-    var client = new HttpClient();
+    if(_deviceList == null || _deviceList.devices == null || _deviceList.devices.Count == 0)
+      await ListDevices();
+    Device? _dvc = _deviceList.devices.Find(x => x.name == deviceName);
+
+    HttpClient client = new();
     client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ClientTokens.AccessToken}");
 
     Payload payload = new();
